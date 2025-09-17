@@ -222,71 +222,83 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dropdowns + info are now scrollable together
-            DropdownButtonFormField<int>(
-              value: selectedMake,
-              items: makes.map<DropdownMenuItem<int>>((m) {
-                return DropdownMenuItem<int>(
-                  value: int.tryParse(m['id'].toString()),
-                  child: Text(m['name'].toString()),
-                );
-              }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
-              hint: Text("Choose Make"),
-              onChanged: (val) {
-                setState(() {
-                  selectedMake = val;
-                  if (val != null) fetchModels(val);
-                });
-              },
-            ),
-            SizedBox(height: 12),
-            DropdownButtonFormField<int>(
-              value: selectedModel,
-              items: models.map<DropdownMenuItem<int>>((m) {
-                return DropdownMenuItem<int>(
-                  value: int.tryParse(m['id'].toString()),
-                  child: Text(m['name'].toString()),
-                );
-              }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
-              hint: Text("Choose Model"),
-              onChanged: loadingModels
-                  ? null
-                  : (val) {
+    body: Padding(
+  padding: EdgeInsets.all(16),
+  child: checkingSubscription
+      ? Center(child: CircularProgressIndicator())
+      : subscribed
+          ? SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Dropdowns + info are now scrollable together
+                  DropdownButtonFormField<int>(
+                    value: selectedMake,
+                    items: makes.map<DropdownMenuItem<int>>((m) {
+                      return DropdownMenuItem<int>(
+                        value: int.tryParse(m['id'].toString()),
+                        child: Text(m['name'].toString()),
+                      );
+                    }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
+                    hint: Text("Choose Make"),
+                    onChanged: (val) {
                       setState(() {
-                        selectedModel = val;
-                        if (val != null) fetchYears(val);
+                        selectedMake = val;
+                        if (val != null) fetchModels(val);
                       });
                     },
+                  ),
+                  SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: selectedModel,
+                    items: models.map<DropdownMenuItem<int>>((m) {
+                      return DropdownMenuItem<int>(
+                        value: int.tryParse(m['id'].toString()),
+                        child: Text(m['name'].toString()),
+                      );
+                    }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
+                    hint: Text("Choose Model"),
+                    onChanged: loadingModels
+                        ? null
+                        : (val) {
+                            setState(() {
+                              selectedModel = val;
+                              if (val != null) fetchYears(val);
+                            });
+                          },
+                  ),
+                  SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: selectedYear,
+                    items: years.map<DropdownMenuItem<int>>((y) {
+                      return DropdownMenuItem<int>(
+                        value: int.tryParse(y['id'].toString()),
+                        child: Text(y['year'].toString()),
+                      );
+                    }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
+                    hint: Text("Choose Year"),
+                    onChanged: loadingYears
+                        ? null
+                        : (val) {
+                            setState(() {
+                              selectedYear = val;
+                              if (val != null) fetchInfo(val);
+                            });
+                          },
+                  ),
+                  SizedBox(height: 20),
+                  buildInfoSection(),
+                ],
+              ),
+            )
+          : Center(
+              child: Text(
+                "No active subscription.\nPlease use our website to manage your account.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.red),
+              ),
             ),
-            SizedBox(height: 12),
-            DropdownButtonFormField<int>(
-              value: selectedYear,
-              items: years.map<DropdownMenuItem<int>>((y) {
-                return DropdownMenuItem<int>(
-                  value: int.tryParse(y['id'].toString()),
-                  child: Text(y['year'].toString()),
-                );
-              }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
-              hint: Text("Choose Year"),
-              onChanged: loadingYears
-                  ? null
-                  : (val) {
-                      setState(() {
-                        selectedYear = val;
-                        if (val != null) fetchInfo(val);
-                      });
-                    },
-            ),
-            SizedBox(height: 20),
-            buildInfoSection(),
-          ],
-        ),
-      ),
+),
     );
   }
 }

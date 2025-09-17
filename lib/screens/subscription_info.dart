@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../login_page.dart';
 
 class SubscriptionInfoScreen extends StatefulWidget {
   @override
@@ -39,10 +40,16 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token'); // keep consistent with getToken()
-    Navigator.pushReplacementNamed(context, '/login'); // ensure this route exists
-  }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('access_token');
+  await prefs.remove('subscribed');
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => LoginPage()),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +79,22 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
                     Text(message),
                   ],
                   SizedBox(height: 20),
+                  
+                  // --- NEW NOTE ---
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      "Note: To manage your subscription, please use our website.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blueGrey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+
                   ElevatedButton(
                     onPressed: logout,
                     child: Text("Log Out"),
