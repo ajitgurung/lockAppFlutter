@@ -124,7 +124,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget buildInfoSection() {
     if (loadingInfo) return Center(child: CircularProgressIndicator());
     if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
-      return Text("No information available.");
+      return Center(
+        child: Text(
+          "No information available.",
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+        ),
+      );
     }
 
     List<Widget> sections = [];
@@ -133,29 +138,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final mapItems = Map<String, dynamic>.from(items);
       sections.add(
         Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: EdgeInsets.symmetric(vertical: 8),
           child: Padding(
-            padding: EdgeInsets.all(12),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   sectionTitle.replaceAll('_', ' ').toUpperCase(),
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700, fontSize: 16),
                 ),
                 SizedBox(height: 8),
                 ...mapItems.entries.map(
-                  (e) => Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          e.key.replaceAll('_', ' '),
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                  (e) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            e.key.replaceAll('_', ' '),
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
                         ),
-                      ),
-                      Expanded(flex: 5, child: Text(e.value.toString())),
-                    ],
+                        Expanded(
+                          flex: 5,
+                          child: Text(e.value.toString()),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -169,7 +182,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       sections.add(
         Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
-          child: Image.network(info!['image_url']),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(info!['image_url']),
+          ),
         ),
       );
     }
@@ -178,12 +194,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
       sections.add(
         Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text("Video available: ${info!['video']}"),
+          child: Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              "Video available: ${info!['video']}",
+              style: TextStyle(color: Colors.blue.shade800),
+            ),
+          ),
         ),
       );
     }
 
     return Column(children: sections);
+  }
+
+  Widget buildDropdown<T>({
+    required String hint,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+    bool isLoading = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonFormField<T>(
+        value: value,
+        items: items,
+        hint: Text(hint),
+        onChanged: isLoading ? null : onChanged,
+        decoration: InputDecoration(border: InputBorder.none),
+      ),
+    );
   }
 
   @override
@@ -197,10 +247,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Vehicle Info"),
+        title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blue.shade700,
         actions: [
           IconButton(
-            icon: Icon(Icons.info),
+            icon: Icon(Icons.info, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -209,7 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('access_token');
@@ -222,83 +274,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-    body: Padding(
-  padding: EdgeInsets.all(16),
-  child: checkingSubscription
-      ? Center(child: CircularProgressIndicator())
-      : subscribed
-          ? SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Dropdowns + info are now scrollable together
-                  DropdownButtonFormField<int>(
-                    value: selectedMake,
-                    items: makes.map<DropdownMenuItem<int>>((m) {
-                      return DropdownMenuItem<int>(
-                        value: int.tryParse(m['id'].toString()),
-                        child: Text(m['name'].toString()),
-                      );
-                    }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
-                    hint: Text("Choose Make"),
-                    onChanged: (val) {
-                      setState(() {
-                        selectedMake = val;
-                        if (val != null) fetchModels(val);
-                      });
-                    },
+      body: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade100, Colors.blue.shade50],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: subscribed
+            ? SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildDropdown<int>(
+                      hint: "Choose Make",
+                      value: selectedMake,
+                      items: makes
+                          .map<DropdownMenuItem<int>>((m) => DropdownMenuItem<int>(
+                                value: int.tryParse(m['id'].toString()),
+                                child: Text(m['name'].toString()),
+                              ))
+                          .where((e) => e.value != null)
+                          .cast<DropdownMenuItem<int>>()
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedMake = val;
+                          if (val != null) fetchModels(val);
+                        });
+                      },
+                      isLoading: loadingMakes,
+                    ),
+                    SizedBox(height: 12),
+                    buildDropdown<int>(
+                      hint: "Choose Model",
+                      value: selectedModel,
+                      items: models
+                          .map<DropdownMenuItem<int>>((m) => DropdownMenuItem<int>(
+                                value: int.tryParse(m['id'].toString()),
+                                child: Text(m['name'].toString()),
+                              ))
+                          .where((e) => e.value != null)
+                          .cast<DropdownMenuItem<int>>()
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedModel = val;
+                          if (val != null) fetchYears(val);
+                        });
+                      },
+                      isLoading: loadingModels,
+                    ),
+                    SizedBox(height: 12),
+                    buildDropdown<int>(
+                      hint: "Choose Year",
+                      value: selectedYear,
+                      items: years
+                          .map<DropdownMenuItem<int>>((y) => DropdownMenuItem<int>(
+                                value: int.tryParse(y['id'].toString()),
+                                child: Text(y['year'].toString()),
+                              ))
+                          .where((e) => e.value != null)
+                          .cast<DropdownMenuItem<int>>()
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedYear = val;
+                          if (val != null) fetchInfo(val);
+                        });
+                      },
+                      isLoading: loadingYears,
+                    ),
+                    SizedBox(height: 20),
+                    buildInfoSection(),
+                  ],
+                ),
+              )
+            : Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    "No active subscription.\nPlease use our website to manage your account.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.red.shade700, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    value: selectedModel,
-                    items: models.map<DropdownMenuItem<int>>((m) {
-                      return DropdownMenuItem<int>(
-                        value: int.tryParse(m['id'].toString()),
-                        child: Text(m['name'].toString()),
-                      );
-                    }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
-                    hint: Text("Choose Model"),
-                    onChanged: loadingModels
-                        ? null
-                        : (val) {
-                            setState(() {
-                              selectedModel = val;
-                              if (val != null) fetchYears(val);
-                            });
-                          },
-                  ),
-                  SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    value: selectedYear,
-                    items: years.map<DropdownMenuItem<int>>((y) {
-                      return DropdownMenuItem<int>(
-                        value: int.tryParse(y['id'].toString()),
-                        child: Text(y['year'].toString()),
-                      );
-                    }).where((e) => e.value != null).cast<DropdownMenuItem<int>>().toList(),
-                    hint: Text("Choose Year"),
-                    onChanged: loadingYears
-                        ? null
-                        : (val) {
-                            setState(() {
-                              selectedYear = val;
-                              if (val != null) fetchInfo(val);
-                            });
-                          },
-                  ),
-                  SizedBox(height: 20),
-                  buildInfoSection(),
-                ],
+                ),
               ),
-            )
-          : Center(
-              child: Text(
-                "No active subscription.\nPlease use our website to manage your account.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.red),
-              ),
-            ),
-),
+      ),
     );
   }
 }
