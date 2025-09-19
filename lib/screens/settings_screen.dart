@@ -175,7 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               deleteAccount(deletePasswordController.text);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text("Delete"),
+            child: Text("Delete", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -239,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: _showDeleteDialog,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red),
-                    child: Text("Delete Account"),
+                    child: Text("Delete Account", style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
