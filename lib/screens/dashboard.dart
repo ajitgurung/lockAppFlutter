@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../login_page.dart';
 import 'subscription_info.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -247,33 +248,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue.shade700,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.info, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('access_token');
-              await prefs.remove('subscribed');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => LoginPage()),
-              );
-            },
-          ),
-        ],
-      ),
+  title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
+  automaticallyImplyLeading: false,
+  backgroundColor: Colors.blue.shade700,
+  actions: [
+    IconButton(
+      icon: Icon(Icons.settings, color: Colors.white),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SettingsScreen()),
+        );
+      },
+    ),
+    IconButton(
+      icon: Icon(Icons.info, color: Colors.white),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
+        );
+      },
+    ),
+    IconButton(
+      icon: Icon(Icons.logout, color: Colors.white),
+      onPressed: () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('access_token');
+        await prefs.remove('subscribed');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => LoginPage()),
+        );
+      },
+    ),
+  ],
+),
       body: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
