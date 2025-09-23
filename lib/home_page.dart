@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 
 class HomePage extends StatelessWidget {
+  // helper method to open links
+  Future<void> _openLink(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +27,6 @@ class HomePage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Spacer(),
               // App Logo or Title
@@ -109,7 +117,30 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              Spacer(flex: 2),
+              Spacer(),
+
+              // Footer links
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Column(
+                  children: [
+                    TextButton(
+                      onPressed: () => _openLink("https://yourwebsite.com/privacy-policy"),
+                      child: Text(
+                        "Privacy Policy",
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _openLink("https://yourwebsite.com/terms-and-conditions"),
+                      child: Text(
+                        "Terms & Conditions",
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
