@@ -19,39 +19,36 @@ class _MuxVideoPlayerState extends State<MuxVideoPlayer> {
   @override
   void initState() {
     super.initState();
+    _initializePlayer();
+  }
 
-    final url = 'https://stream.mux.com/${widget.playbackId}.m3u8?token=${widget.token}';
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url))
-      ..initialize().then((_) {
-        setState(() {});
-      });
+  Future<void> _initializePlayer() async {
+    final url =
+        'https://stream.mux.com/${widget.playbackId}.m3u8?token=${widget.token}';
+    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
 
+    await _videoPlayerController!.initialize();
     _chewieController = ChewieController(
       videoPlayerController: _videoPlayerController!,
       autoPlay: true,
       looping: false,
-      errorBuilder: (context, errorMessage) {
-        return Center(child: Text(errorMessage));
-      },
     );
+    setState(() {});
   }
 
   @override
   void dispose() {
-    _videoPlayerController?.dispose();
     _chewieController?.dispose();
+    _videoPlayerController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_videoPlayerController == null || !_videoPlayerController!.value.isInitialized) {
+    if (_videoPlayerController == null ||
+        !_videoPlayerController!.value.isInitialized) {
       return Center(child: CircularProgressIndicator());
     }
-
-    return AspectRatio(
-      aspectRatio: _videoPlayerController!.value.aspectRatio,
-      child: Chewie(controller: _chewieController!),
-    );
+    return Chewie(controller: _chewieController!);
   }
 }

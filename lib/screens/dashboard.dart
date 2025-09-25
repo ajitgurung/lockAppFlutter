@@ -5,6 +5,8 @@ import '../login_page.dart';
 import 'subscription_info.dart';
 import 'settings_screen.dart';
 import 'mux_video_player.dart';
+import 'custom_dropdown.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -61,8 +63,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => loadingMakes = true);
     try {
       final response = await ApiService.getMakes();
-      makes = List<Map<String, dynamic>>.from(response['makes']);
-      setState(() => loadingMakes = false);
+      final newMakes = List<Map<String, dynamic>>.from(response['makes']);
+      setState(() {
+        makes = newMakes;
+        loadingMakes = false;
+      });
     } catch (e) {
       print("Error fetching makes: $e");
       setState(() => loadingMakes = false);
@@ -81,8 +86,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final response = await ApiService.getModels(makeId);
-      models = List<Map<String, dynamic>>.from(response['models']);
-      setState(() => loadingModels = false);
+      final newModels = List<Map<String, dynamic>>.from(response['models']);
+      setState(() {
+        models = newModels;
+        loadingModels = false;
+      });
     } catch (e) {
       print("Error fetching models: $e");
       setState(() => loadingModels = false);
@@ -99,8 +107,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final response = await ApiService.getYears(modelId);
-      years = List<Map<String, dynamic>>.from(response['years']);
-      setState(() => loadingYears = false);
+      final newYears = List<Map<String, dynamic>>.from(response['years']);
+      setState(() {
+        years = newYears;
+        loadingYears = false;
+      });
     } catch (e) {
       print("Error fetching years: $e");
       setState(() => loadingYears = false);
@@ -115,8 +126,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final response = await ApiService.getInfo(yearId);
-      info = Map<String, dynamic>.from(response);
-      setState(() => loadingInfo = false);
+      final newInfo = Map<String, dynamic>.from(response);
+      setState(() {
+        info = newInfo;
+        loadingInfo = false;
+      });
     } catch (e) {
       print("Error fetching info: $e");
       setState(() => loadingInfo = false);
@@ -124,7 +138,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget buildInfoSection() {
-    if (loadingInfo) return Center(child: CircularProgressIndicator());
+    if (loadingInfo) {
+      return Center(child: CircularProgressIndicator());
+    }
     if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
       return Center(
         child: Text(
@@ -134,28 +150,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    List<Widget> sections = [];
+    final List<Widget> items = [];
 
-    info!['sections'].forEach((sectionTitle, items) {
-      final mapItems = Map<String, dynamic>.from(items);
-      sections.add(
+    info!['sections'].forEach((sectionTitle, itemsMap) {
+      final mapItems = Map<String, dynamic>.from(itemsMap);
+      items.add(
         Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 2,
           margin: EdgeInsets.symmetric(vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   sectionTitle.replaceAll('_', ' ').toUpperCase(),
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
+                    fontSize: 16,
+                  ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 ...mapItems.entries.map(
                   (e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Row(
                       children: [
                         Expanded(
@@ -165,10 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             style: TextStyle(fontWeight: FontWeight.w500),
                           ),
                         ),
-                        Expanded(
-                          flex: 5,
-                          child: Text(e.value.toString()),
-                        ),
+                        Expanded(flex: 5, child: Text(e.value.toString())),
                       ],
                     ),
                   ),
@@ -180,58 +197,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     });
 
+    // Cached Image
     if (info!['image_url'] != null) {
-      sections.add(
+      items.add(
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(info!['image_url']),
+            child: CachedNetworkImage(
+              imageUrl: info!['image_url'],
+              fit: BoxFit.cover,
+              placeholder: (context, url) =>
+                  Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) =>
+                  Center(child: Icon(Icons.broken_image, size: 40)),
+            ),
           ),
         ),
       );
     }
 
+    // Lazy-load Video
     if (info!['playback_id'] != null && info!['playback_token'] != null) {
-  sections.add(
-    Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: MuxVideoPlayer(
-          playbackId: info!['playback_id'],
-          token: info!['playback_token'],
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: ElevatedButton.icon(
+            icon: Icon(Icons.play_arrow),
+            label: Text("Play Video"),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: MuxVideoPlayer(
+                      playbackId: info!['playback_id'],
+                      token: info!['playback_token'],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    ),
-  );
-}
+      );
+    }
 
-
-    return Column(children: sections);
-  }
-
-  Widget buildDropdown<T>({
-    required String hint,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-    bool isLoading = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 12),
-      child: DropdownButtonFormField<T>(
-        value: value,
-        items: items,
-        hint: Text(hint),
-        onChanged: isLoading ? null : onChanged,
-        decoration: InputDecoration(border: InputBorder.none),
-      ),
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      itemBuilder: (context, index) => items[index],
     );
   }
 
@@ -246,42 +263,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-  title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
-  automaticallyImplyLeading: false,
-  backgroundColor: Colors.blue.shade700,
-  actions: [
-    IconButton(
-      icon: Icon(Icons.settings, color: Colors.white),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => SettingsScreen()),
-        );
-      },
-    ),
-    IconButton(
-      icon: Icon(Icons.info, color: Colors.white),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
-        );
-      },
-    ),
-    IconButton(
-      icon: Icon(Icons.logout, color: Colors.white),
-      onPressed: () async {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('access_token');
-        await prefs.remove('subscribed');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => LoginPage()),
-        );
-      },
-    ),
-  ],
-),
+        title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blue.shade700,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.info, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('access_token');
+              await prefs.remove('subscribed');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => LoginPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -296,16 +313,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    buildDropdown<int>(
+                    CustomDropdown<int>(
                       hint: "Choose Make",
                       value: selectedMake,
                       items: makes
-                          .map<DropdownMenuItem<int>>((m) => DropdownMenuItem<int>(
+                          .map((m) => DropdownMenuItem<int>(
                                 value: int.tryParse(m['id'].toString()),
                                 child: Text(m['name'].toString()),
                               ))
                           .where((e) => e.value != null)
-                          .cast<DropdownMenuItem<int>>()
                           .toList(),
                       onChanged: (val) {
                         setState(() {
@@ -315,17 +331,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                       isLoading: loadingMakes,
                     ),
-                    SizedBox(height: 12),
-                    buildDropdown<int>(
+                    CustomDropdown<int>(
                       hint: "Choose Model",
                       value: selectedModel,
                       items: models
-                          .map<DropdownMenuItem<int>>((m) => DropdownMenuItem<int>(
+                          .map((m) => DropdownMenuItem<int>(
                                 value: int.tryParse(m['id'].toString()),
                                 child: Text(m['name'].toString()),
                               ))
                           .where((e) => e.value != null)
-                          .cast<DropdownMenuItem<int>>()
                           .toList(),
                       onChanged: (val) {
                         setState(() {
@@ -335,17 +349,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                       isLoading: loadingModels,
                     ),
-                    SizedBox(height: 12),
-                    buildDropdown<int>(
+                    CustomDropdown<int>(
                       hint: "Choose Year",
                       value: selectedYear,
                       items: years
-                          .map<DropdownMenuItem<int>>((y) => DropdownMenuItem<int>(
+                          .map((y) => DropdownMenuItem<int>(
                                 value: int.tryParse(y['id'].toString()),
                                 child: Text(y['year'].toString()),
                               ))
                           .where((e) => e.value != null)
-                          .cast<DropdownMenuItem<int>>()
                           .toList(),
                       onChanged: (val) {
                         setState(() {
@@ -366,7 +378,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Text(
                     "No active subscription.\nPlease use our website to manage your account.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.red.shade700, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
