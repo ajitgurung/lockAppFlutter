@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../login_page.dart';
 import 'subscription_info.dart';
 import 'settings_screen.dart';
+import 'mux_video_player.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -191,24 +192,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    if (info!['video'] != null) {
-      sections.add(
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              "Video available: ${info!['video']}",
-              style: TextStyle(color: Colors.blue.shade800),
-            ),
-          ),
+    if (info!['playback_id'] != null && info!['playback_token'] != null) {
+  sections.add(
+    Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: MuxVideoPlayer(
+          playbackId: info!['playback_id'],
+          token: info!['playback_token'],
         ),
-      );
-    }
+      ),
+    ),
+  );
+}
+
 
     return Column(children: sections);
   }
