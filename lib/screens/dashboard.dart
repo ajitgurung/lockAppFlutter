@@ -7,6 +7,7 @@ import 'settings_screen.dart';
 import 'mux_video_player.dart';
 import 'custom_dropdown.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -137,120 +138,175 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  String fixUrl(String url) {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return 'https://$url';
+  }
+  return url;
+}
+
   Widget buildInfoSection() {
-    if (loadingInfo) {
-      return Center(child: CircularProgressIndicator());
-    }
-    if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
-      return Center(
-        child: Text(
-          "No information available.",
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-        ),
-      );
-    }
-
-    final List<Widget> items = [];
-
-    info!['sections'].forEach((sectionTitle, itemsMap) {
-      final mapItems = Map<String, dynamic>.from(itemsMap);
-      items.add(
-        Card(
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  sectionTitle.replaceAll('_', ' ').toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(height: 6),
-                ...mapItems.entries.map(
-                  (e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            e.key.replaceAll('_', ' '),
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                        Expanded(flex: 5, child: Text(e.value.toString())),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    });
-
-    // Cached Image
-    if (info!['image_url'] != null) {
-      items.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              imageUrl: info!['image_url'],
-              fit: BoxFit.cover,
-              placeholder: (context, url) =>
-                  Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) =>
-                  Center(child: Icon(Icons.broken_image, size: 40)),
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Lazy-load Video
-    if (info!['playback_id'] != null && info!['playback_token'] != null) {
-      items.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: ElevatedButton.icon(
-            icon: Icon(Icons.play_arrow),
-            label: Text("Play Video"),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => Dialog(
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: MuxVideoPlayer(
-                      playbackId: info!['playback_id'],
-                      token: info!['playback_token'],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      itemBuilder: (context, index) => items[index],
+  if (loadingInfo) {
+    return Center(child: CircularProgressIndicator());
+  }
+  if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
+    return Center(
+      child: Text(
+        "No information available.",
+        style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+      ),
     );
   }
+
+  final List<Widget> items = [];
+
+  info!['sections'].forEach((sectionTitle, itemsMap) {
+    final mapItems = Map<String, dynamic>.from(itemsMap);
+    items.add(
+      Card(
+        elevation: 2,
+        margin: EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                sectionTitle.replaceAll('_', ' ').toUpperCase(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 6),
+              ...mapItems.entries.map(
+                (e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          e.key.replaceAll('_', ' '),
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Expanded(flex: 5, child: Text(e.value.toString())),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  });
+
+  // ✅ Product Link Section
+  if (info!['product'] != null && info!['product'].toString().isNotEmpty) {
+final productUrl = fixUrl(info!['product'].toString());
+  items.add(
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: ElevatedButton.icon(
+        icon: Icon(Icons.link),
+        label: Text("View Product"),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        onPressed: () async {
+          final url = info!['product'].toString().trim();
+          if (url.isEmpty) return;
+
+          final uri = Uri.parse(url);
+
+          try {
+            // Skip canLaunchUrl (some Androids falsely return false)
+            final launched = await launchUrl(
+              uri,
+              mode: LaunchMode.externalApplication,
+            );
+
+            if (!launched) {
+              // fallback if launchUrl returns false
+              await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+            }
+          } catch (e) {
+            print("Error launching product link: $e");
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Could not open product link.")),
+            );
+          }
+        }
+
+      ),
+    ),
+  );
+}
+
+  // ✅ Cached Image
+  if (info!['image_url'] != null) {
+    items.add(
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CachedNetworkImage(
+            imageUrl: info!['image_url'],
+            fit: BoxFit.cover,
+            placeholder: (context, url) =>
+                Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) =>
+                Center(child: Icon(Icons.broken_image, size: 40)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ✅ Video Button (Mux)
+  if (info!['playback_id'] != null && info!['playback_token'] != null) {
+    items.add(
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: ElevatedButton.icon(
+          icon: Icon(Icons.play_arrow),
+          label: Text("Play Video"),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (_) => Dialog(
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: MuxVideoPlayer(
+                    playbackId: info!['playback_id'],
+                    token: info!['playback_token'],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    itemCount: items.length,
+    itemBuilder: (context, index) => items[index],
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: Colors.white),
@@ -303,7 +359,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade100, Colors.blue.shade50],
+            colors: [Theme.of(context).scaffoldBackgroundColor, Colors.blue.shade50],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

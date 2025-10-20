@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (token == null) return;
 
     final response = await http.get(
-      Uri.parse('https://test.ajitgurung.ca/api/profile'),
+      Uri.parse('https://bikebible.ca/api/profile'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -85,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     final response = await http.patch(
-      Uri.parse('https://test.ajitgurung.ca/api/profile'),
+      Uri.parse('https://bikebible.ca/api/profile'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -122,15 +122,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (token == null) return;
 
     final response = await http.post(
-  Uri.parse('https://test.ajitgurung.ca/api/profile/delete'),
-  headers: {
-    'Authorization': 'Bearer $token',
-    'Content-Type': 'application/json',
-  },
-  body: json.encode({'password': password}),
-);
-
-
+      Uri.parse('https://bikebible.ca/api/profile/delete'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'password': password}),
+    );
 
     if (response.statusCode == 200) {
       final prefs = await SharedPreferences.getInstance();
@@ -162,7 +160,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: TextField(
           controller: deletePasswordController,
           obscureText: true,
-          decoration: InputDecoration(labelText: "Enter Password"),
+          decoration: InputDecoration(
+            labelText: "Enter Password",
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(),
+          ),
         ),
         actions: [
           TextButton(
@@ -174,10 +177,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               deleteAccount(deletePasswordController.text);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
             child: Text("Delete", style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }
@@ -194,43 +213,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   TextField(
                     controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: "Name",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: _inputDecoration("Name"),
                   ),
                   SizedBox(height: 12),
                   TextField(
                     controller: emailController,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: _inputDecoration("Email"),
                   ),
                   SizedBox(height: 12),
                   TextField(
                     controller: currentPasswordController,
                     obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Current Password",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: _inputDecoration("Current Password"),
                   ),
                   SizedBox(height: 12),
                   TextField(
                     controller: newPasswordController,
                     obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "New Password (optional)",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: _inputDecoration("New Password (optional)"),
                   ),
                   SizedBox(height: 20),
                   updating
                       ? CircularProgressIndicator()
                       : ElevatedButton(
                           onPressed: updateProfile,
-                          child: Text("Update Profile"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF24455E),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 14),
+                          ),
+                          child: Text(
+                            "Update Profile",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
                   SizedBox(height: 20),
                   Divider(),
@@ -238,8 +259,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ElevatedButton(
                     onPressed: _showDeleteDialog,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red),
-                    child: Text("Delete Account", style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                    ),
+                    child: Text(
+                      "Delete Account",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
                 ],
               ),

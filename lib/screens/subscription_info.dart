@@ -54,9 +54,8 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Subscription Info", style: TextStyle(color: Colors.white70)),
-        iconTheme: IconThemeData(color: Colors.white70),
-        backgroundColor: Colors.blue.shade700,
+        title: Text("Subscription Info"),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: loading
           ? Center(child: CircularProgressIndicator())
@@ -66,7 +65,9 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(
-                    subscribed ? Icons.check_circle_outline : Icons.warning_amber_outlined,
+                    subscribed
+                        ? Icons.check_circle_outline
+                        : Icons.warning_amber_outlined,
                     color: subscribed ? Colors.green : Colors.red,
                     size: 60,
                   ),
@@ -82,14 +83,16 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
                   ),
                   SizedBox(height: 12),
                   if (subscribed) ...[
-                    Text("Type: $type", style: TextStyle(fontSize: 16)),
+                    Text("Type: $type", style: TextStyle(fontSize: 16, color: Colors.white)),
                     if (nextPaymentDate.isNotEmpty)
-                      Text("Next Payment Date: $nextPaymentDate", style: TextStyle(fontSize: 16)),
+                      Text("Next Payment Date: $nextPaymentDate",
+                          style: TextStyle(fontSize: 16, color: Colors.white)),
                     SizedBox(height: 8),
                     Text(
                       message,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.white),
                     ),
                     SizedBox(height: 20),
                   ],
@@ -98,31 +101,41 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
                   Container(
                     padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        )
+                      ],
                     ),
                     child: Text(
                       "Note: To manage your subscription, please use our website.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.blue.shade700,
+                        color: Colors.grey.shade800,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
                   ),
                   SizedBox(height: 24),
 
+                  // --- Logout button ---
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      backgroundColor: Color(0xFF24455E),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: logout,
                     child: Text(
                       "Log Out",
-                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ],

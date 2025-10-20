@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "https://test.ajitgurung.ca/api";
+  static const String baseUrl = "https://bikebible.ca/api";
 
   // Get auth token from SharedPreferences
   static Future<String?> getToken() async {

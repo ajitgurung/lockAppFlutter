@@ -27,7 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => loading = true);
 
     final response = await http.post(
-      Uri.parse("https://test.ajitgurung.ca/api/register"),
+      Uri.parse("https://bikebible.ca/api/register"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "name": nameController.text,
@@ -74,7 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
         height: screenHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade800, Colors.blue.shade400],
+            colors: [Theme.of(context).scaffoldBackgroundColor, Colors.blue.shade400],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -183,7 +183,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           onPressed: register,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 18),
-                            backgroundColor: Colors.blue.shade700,
+                            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                           ),

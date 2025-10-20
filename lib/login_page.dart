@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
     final response = await http.post(
-      Uri.parse("https://test.ajitgurung.ca/api/login"),
+      Uri.parse("https://bikebible.ca/api/login"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "email": emailController.text,
@@ -59,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
         height: screenHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade800, Colors.blue.shade400],
+            colors: [Theme.of(context).scaffoldBackgroundColor, Colors.blue.shade400],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -129,14 +129,14 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: login,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 18),
-                      backgroundColor: Colors.blue.shade700,
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(
                       "Login",
                       style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70),
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                 ),

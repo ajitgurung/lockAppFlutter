@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // Check if user is logged in
+  static const Color appPrimaryColor = Color(0xFF4783B2); // 💡 Your main color
+
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("access_token") != null;
@@ -18,18 +19,30 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Vehicle Info App',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: appPrimaryColor,
+        scaffoldBackgroundColor: appPrimaryColor, // sets default background
+        appBarTheme: AppBarTheme(
+          backgroundColor: appPrimaryColor,
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: appPrimaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+        ),
+      ),
       home: FutureBuilder<bool>(
         future: isLoggedIn(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
           }
-
-          // If logged in, go directly to Dashboard
-          if (snapshot.data!) return DashboardScreen();
-
-          // Otherwise, show HomePage (with Login/Register buttons)
-          return HomePage();
+          return snapshot.data! ? DashboardScreen() : HomePage();
         },
       ),
     );

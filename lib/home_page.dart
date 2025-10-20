@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue.shade800, Colors.blue.shade400],
+            colors: [Theme.of(context).scaffoldBackgroundColor, Colors.blue.shade400],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
               Spacer(),
               // App Logo or Title
               Text(
-                "LockApp",
+                "Bike Bible",
                 style: TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
@@ -73,7 +73,7 @@ class HomePage extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: Colors.white,
-                          foregroundColor: Colors.blue.shade800,
+                          foregroundColor: Theme.of(context).scaffoldBackgroundColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -125,14 +125,14 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   children: [
                     TextButton(
-                      onPressed: () => _openLink("https://yourwebsite.com/privacy-policy"),
+                      onPressed: () => _openLink("https://bikebible/privacy-policy"),
                       child: Text(
                         "Privacy Policy",
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ),
                     TextButton(
-                      onPressed: () => _openLink("https://yourwebsite.com/terms-and-conditions"),
+                      onPressed: () => _openLink("https://bikebible/terms-and-conditions"),
                       child: Text(
                         "Terms & Conditions",
                         style: TextStyle(color: Colors.white70, fontSize: 14),
