@@ -7,7 +7,8 @@ class CustomDropdown<T> extends StatelessWidget {
   final ValueChanged<T?>? onChanged;
   final bool isLoading;
 
-  CustomDropdown({
+  const CustomDropdown({
+    super.key,
     required this.hint,
     required this.value,
     required this.items,
@@ -17,20 +18,48 @@ class CustomDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = MediaQuery.of(context).size.width > 600;
+
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 6),
+      margin: EdgeInsets.symmetric(vertical: isTablet ? 10 : 6),
+      padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+        borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: isTablet ? 6 : 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
-      padding: EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonFormField<T>(
         value: value,
         items: items,
-        hint: Text(hint),
+        hint: Text(
+          hint,
+          style: TextStyle(fontSize: isTablet ? 18 : 14),
+        ),
         onChanged: isLoading ? null : onChanged,
-        decoration: InputDecoration(border: InputBorder.none),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(
+            vertical: isTablet ? 20 : 16,
+          ),
+        ),
+        style: TextStyle(
+          fontSize: isTablet ? 16 : 14,
+          color: Colors.black87,
+        ),
+        dropdownColor: Colors.white,
+        icon: isLoading
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(Icons.keyboard_arrow_down),
       ),
     );
   }

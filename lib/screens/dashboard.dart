@@ -39,25 +39,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> checkSubscription() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final isSubscribed = prefs.getBool("subscribed") ?? false;
+    final prefs = await SharedPreferences.getInstance();
+    final isSubscribed = prefs.getBool("subscribed") ?? false;
 
-      setState(() {
-        subscribed = isSubscribed;
-        checkingSubscription = false;
-      });
+    setState(() {
+      subscribed = isSubscribed;
+      checkingSubscription = false;
+    });
 
-      if (isSubscribed) {
-        fetchMakes();
-      }
-    } catch (e) {
-      print("Subscription check error: $e");
-      setState(() {
-        subscribed = false;
-        checkingSubscription = false;
-      });
-    }
+    if (isSubscribed) fetchMakes();
   }
 
   Future<void> fetchMakes() async {
@@ -70,7 +60,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         loadingMakes = false;
       });
     } catch (e) {
-      print("Error fetching makes: $e");
       setState(() => loadingMakes = false);
     }
   }
@@ -93,7 +82,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         loadingModels = false;
       });
     } catch (e) {
-      print("Error fetching models: $e");
       setState(() => loadingModels = false);
     }
   }
@@ -114,7 +102,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         loadingYears = false;
       });
     } catch (e) {
-      print("Error fetching years: $e");
       setState(() => loadingYears = false);
     }
   }
@@ -127,189 +114,179 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final response = await ApiService.getInfo(yearId);
-      final newInfo = Map<String, dynamic>.from(response);
       setState(() {
-        info = newInfo;
+        info = Map<String, dynamic>.from(response);
         loadingInfo = false;
       });
     } catch (e) {
-      print("Error fetching info: $e");
       setState(() => loadingInfo = false);
     }
   }
 
   String fixUrl(String url) {
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return 'https://$url';
-  }
-  return url;
-}
-
-  Widget buildInfoSection() {
-  if (loadingInfo) {
-    return Center(child: CircularProgressIndicator());
-  }
-  if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
-    return Center(
-      child: Text(
-        "No information available.",
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-      ),
-    );
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'https://$url';
+    }
+    return url;
   }
 
-  final List<Widget> items = [];
+  Widget buildInfoSection(double width) {
+    if (loadingInfo) return Center(child: CircularProgressIndicator());
 
-  info!['sections'].forEach((sectionTitle, itemsMap) {
-    final mapItems = Map<String, dynamic>.from(itemsMap);
-    items.add(
-      Card(
-        elevation: 2,
-        margin: EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                sectionTitle.replaceAll('_', ' ').toUpperCase(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  fontSize: 16,
+    if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
+      return Center(
+        child: Text(
+          "No information available.",
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+        ),
+      );
+    }
+
+    final List<Widget> items = [];
+
+    info!['sections'].forEach((sectionTitle, itemsMap) {
+      final mapItems = Map<String, dynamic>.from(itemsMap);
+      items.add(
+        Card(
+          elevation: 2,
+          margin: EdgeInsets.symmetric(vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  sectionTitle.replaceAll('_', ' ').toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    fontSize: width > 600 ? 18 : 16, // larger font on tablets
+                  ),
                 ),
-              ),
-              SizedBox(height: 6),
-              ...mapItems.entries.map(
-                (e) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          e.key.replaceAll('_', ' '),
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                SizedBox(height: 6),
+                ...mapItems.entries.map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            e.key.replaceAll('_', ' '),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: width > 600 ? 16 : 14,
+                            ),
+                          ),
                         ),
-                      ),
-                      Expanded(flex: 5, child: Text(e.value.toString())),
-                    ],
+                        Expanded(
+                          flex: 5,
+                          child: Text(
+                            e.value.toString(),
+                            style: TextStyle(fontSize: width > 600 ? 16 : 14),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+
+    if (info!['product'] != null && info!['product'].toString().isNotEmpty) {
+      final productUrl = fixUrl(info!['product'].toString());
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: ElevatedButton.icon(
+            icon: Icon(Icons.link),
+            label: Text("View Product"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
-            ],
+            ),
+            onPressed: () async {
+              final uri = Uri.parse(productUrl);
+              try {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Could not open product link.")),
+                );
+              }
+            },
           ),
         ),
-      ),
-    );
-  });
+      );
+    }
 
-  // ✅ Product Link Section
-  if (info!['product'] != null && info!['product'].toString().isNotEmpty) {
-final productUrl = fixUrl(info!['product'].toString());
-  items.add(
-    Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: ElevatedButton.icon(
-        icon: Icon(Icons.link),
-        label: Text("View Product"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+    if (info!['image_url'] != null) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: CachedNetworkImage(
+              imageUrl: info!['image_url'],
+              fit: BoxFit.cover,
+              placeholder: (context, url) =>
+                  Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) =>
+                  Center(child: Icon(Icons.broken_image, size: 40)),
+            ),
           ),
         ),
-        onPressed: () async {
-          final url = info!['product'].toString().trim();
-          if (url.isEmpty) return;
+      );
+    }
 
-          final uri = Uri.parse(url);
-
-          try {
-            // Skip canLaunchUrl (some Androids falsely return false)
-            final launched = await launchUrl(
-              uri,
-              mode: LaunchMode.externalApplication,
-            );
-
-            if (!launched) {
-              // fallback if launchUrl returns false
-              await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
-            }
-          } catch (e) {
-            print("Error launching product link: $e");
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Could not open product link.")),
-            );
-          }
-        }
-
-      ),
-    ),
-  );
-}
-
-  // ✅ Cached Image
-  if (info!['image_url'] != null) {
-    items.add(
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            imageUrl: info!['image_url'],
-            fit: BoxFit.cover,
-            placeholder: (context, url) =>
-                Center(child: CircularProgressIndicator()),
-            errorWidget: (context, url, error) =>
-                Center(child: Icon(Icons.broken_image, size: 40)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ✅ Video Button (Mux)
-  if (info!['playback_id'] != null && info!['playback_token'] != null) {
-    items.add(
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: ElevatedButton.icon(
-          icon: Icon(Icons.play_arrow),
-          label: Text("Play Video"),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => Dialog(
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: MuxVideoPlayer(
-                    playbackId: info!['playback_id'],
-                    token: info!['playback_token'],
+    if (info!['playback_id'] != null && info!['playback_token'] != null) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: ElevatedButton.icon(
+            icon: Icon(Icons.play_arrow),
+            label: Text("Play Video"),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: MuxVideoPlayer(
+                      playbackId: info!['playback_id'],
+                      token: info!['playback_token'],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      itemBuilder: (context, index) => items[index],
     );
   }
-
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: NeverScrollableScrollPhysics(),
-    itemCount: items.length,
-    itemBuilder: (context, index) => items[index],
-  );
-}
-
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isTablet = width > 600;
+
     if (checkingSubscription) {
       return Scaffold(
         appBar: AppBar(title: Text("Vehicle Info")),
@@ -325,21 +302,17 @@ final productUrl = fixUrl(info!['product'].toString());
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsScreen()),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SettingsScreen()),
+            ),
           ),
           IconButton(
             icon: Icon(Icons.info, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
+            ),
           ),
           IconButton(
             icon: Icon(Icons.logout, color: Colors.white),
@@ -356,10 +329,13 @@ final productUrl = fixUrl(info!['product'].toString());
         ],
       ),
       body: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(isTablet ? 24 : 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Theme.of(context).scaffoldBackgroundColor, Colors.blue.shade50],
+            colors: [
+              Theme.of(context).scaffoldBackgroundColor,
+              Colors.blue.shade50
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -375,7 +351,9 @@ final productUrl = fixUrl(info!['product'].toString());
                       items: makes
                           .map((m) => DropdownMenuItem<int>(
                                 value: int.tryParse(m['id'].toString()),
-                                child: Text(m['name'].toString()),
+                                child: Text(m['name'].toString(),
+                                    style: TextStyle(
+                                        fontSize: isTablet ? 18 : 14)),
                               ))
                           .where((e) => e.value != null)
                           .toList(),
@@ -393,7 +371,9 @@ final productUrl = fixUrl(info!['product'].toString());
                       items: models
                           .map((m) => DropdownMenuItem<int>(
                                 value: int.tryParse(m['id'].toString()),
-                                child: Text(m['name'].toString()),
+                                child: Text(m['name'].toString(),
+                                    style: TextStyle(
+                                        fontSize: isTablet ? 18 : 14)),
                               ))
                           .where((e) => e.value != null)
                           .toList(),
@@ -411,7 +391,9 @@ final productUrl = fixUrl(info!['product'].toString());
                       items: years
                           .map((y) => DropdownMenuItem<int>(
                                 value: int.tryParse(y['id'].toString()),
-                                child: Text(y['year'].toString()),
+                                child: Text(y['year'].toString(),
+                                    style: TextStyle(
+                                        fontSize: isTablet ? 18 : 14)),
                               ))
                           .where((e) => e.value != null)
                           .toList(),
@@ -423,19 +405,19 @@ final productUrl = fixUrl(info!['product'].toString());
                       },
                       isLoading: loadingYears,
                     ),
-                    SizedBox(height: 20),
-                    buildInfoSection(),
+                    SizedBox(height: isTablet ? 30 : 20),
+                    buildInfoSection(width),
                   ],
                 ),
               )
             : Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 48 : 24),
                   child: Text(
                     "No active subscription.\nPlease use our website to manage your account.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isTablet ? 20 : 16,
                       color: Colors.red.shade700,
                       fontWeight: FontWeight.bold,
                     ),

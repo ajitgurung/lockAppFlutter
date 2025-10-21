@@ -34,25 +34,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final token = await _getToken();
     if (token == null) return;
 
-    final response = await http.get(
-      Uri.parse('https://bikebible.ca/api/profile'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('https://bikebible.ca/api/profile'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        nameController.text = data['user']['name'] ?? '';
-        emailController.text = data['user']['email'] ?? '';
-        loading = false;
-      });
-    } else {
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          nameController.text = data['user']['name'] ?? '';
+          emailController.text = data['user']['email'] ?? '';
+          loading = false;
+        });
+      } else {
+        setState(() => loading = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Failed to fetch profile")));
+      }
+    } catch (e) {
       setState(() => loading = false);
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Failed to fetch profile")));
+          .showSnackBar(SnackBar(content: Text("Error fetching profile")));
     }
   }
 
@@ -84,36 +90,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body['password_confirmation'] = newPasswordController.text;
     }
 
-    final response = await http.patch(
-      Uri.parse('https://bikebible.ca/api/profile'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: json.encode(body),
-    );
-
-    setState(() => updating = false);
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Profile updated successfully")),
+    try {
+      final response = await http.patch(
+        Uri.parse('https://bikebible.ca/api/profile'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(body),
       );
-      currentPasswordController.clear();
-      newPasswordController.clear();
-    } else {
-      String errorMsg = "Failed to update profile";
-      try {
+
+      setState(() => updating = false);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Profile updated successfully")),
+        );
+        currentPasswordController.clear();
+        newPasswordController.clear();
+      } else {
+        String errorMsg = "Failed to update profile";
         final data = json.decode(response.body);
         if (data['message'] != null) errorMsg = data['message'];
         if (data['errors'] != null) {
-          errorMsg =
-              data['errors'].values.expand((e) => e).join("\n");
+          errorMsg = data['errors'].values.expand((e) => e).join("\n");
         }
-      } catch (_) {}
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMsg)));
+      }
+    } catch (e) {
+      setState(() => updating = false);
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMsg)));
+          .showSnackBar(SnackBar(content: Text("Error updating profile")));
     }
   }
 
@@ -121,34 +130,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final token = await _getToken();
     if (token == null) return;
 
-    final response = await http.post(
-      Uri.parse('https://bikebible.ca/api/profile/delete'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => LoginPage()),
-        (route) => false,
+    try {
+      final response = await http.post(
+        Uri.parse('https://bikebible.ca/api/profile/delete'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'password': password}),
       );
-    } else {
-      String errorMsg = "Failed to delete account";
-      try {
+
+      if (response.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => LoginPage()),
+          (route) => false,
+        );
+      } else {
+        String errorMsg = "Failed to delete account";
         final data = json.decode(response.body);
         if (data['message'] != null) errorMsg = data['message'];
         if (data['errors'] != null) {
           errorMsg = data['errors'].values.expand((e) => e).join("\n");
         }
-      } catch (_) {}
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMsg)));
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMsg)));
+          .showSnackBar(SnackBar(content: Text("Error deleting account")));
     }
   }
 
@@ -196,82 +208,95 @@ class _SettingsScreenState extends State<SettingsScreen> {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+
     return Scaffold(
       appBar: AppBar(title: Text("Settings")),
       body: loading
           ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: _inputDecoration("Name"),
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: emailController,
-                    decoration: _inputDecoration("Email"),
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: currentPasswordController,
-                    obscureText: true,
-                    decoration: _inputDecoration("Current Password"),
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: newPasswordController,
-                    obscureText: true,
-                    decoration: _inputDecoration("New Password (optional)"),
-                  ),
-                  SizedBox(height: 20),
-                  updating
-                      ? CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF24455E),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+          : Center(
+              child: Container(
+                width: isTablet ? 600 : double.infinity,
+                padding: EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: _inputDecoration("Name"),
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: emailController,
+                        decoration: _inputDecoration("Email"),
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: currentPasswordController,
+                        obscureText: true,
+                        decoration: _inputDecoration("Current Password"),
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: newPasswordController,
+                        obscureText: true,
+                        decoration:
+                            _inputDecoration("New Password (optional)"),
+                      ),
+                      SizedBox(height: 24),
+                      updating
+                          ? CircularProgressIndicator()
+                          : SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: updateProfile,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF24455E),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 16),
+                                ),
+                                child: Text(
+                                  "Update Profile",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                              ),
                             ),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 14),
+                      SizedBox(height: 24),
+                      Divider(),
+                      SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _showDeleteDialog,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: Text(
-                            "Update Profile",
+                            "Delete Account",
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
+                                color: Colors.white, fontSize: 16),
                           ),
                         ),
-                  SizedBox(height: 20),
-                  Divider(),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _showDeleteDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                    ),
-                    child: Text(
-                      "Delete Account",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
     );

@@ -52,6 +52,9 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Subscription Info"),
@@ -59,86 +62,110 @@ class _SubscriptionInfoScreenState extends State<SubscriptionInfoScreen> {
       ),
       body: loading
           ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    subscribed
-                        ? Icons.check_circle_outline
-                        : Icons.warning_amber_outlined,
-                    color: subscribed ? Colors.green : Colors.red,
-                    size: 60,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    subscribed ? "Subscription Active" : "No Active Subscription",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: subscribed ? Colors.green : Colors.red,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 12),
-                  if (subscribed) ...[
-                    Text("Type: $type", style: TextStyle(fontSize: 16, color: Colors.white)),
-                    if (nextPaymentDate.isNotEmpty)
-                      Text("Next Payment Date: $nextPaymentDate",
-                          style: TextStyle(fontSize: 16, color: Colors.white)),
-                    SizedBox(height: 8),
-                    Text(
-                      message,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 14, color: Colors.white),
-                    ),
-                    SizedBox(height: 20),
-                  ],
-
-                  // --- Styled note ---
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        )
-                      ],
-                    ),
-                    child: Text(
-                      "Note: To manage your subscription, please use our website.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade800,
-                        fontStyle: FontStyle.italic,
+          : Center(
+              child: Container(
+                width: isTablet ? 600 : double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        subscribed
+                            ? Icons.check_circle_outline
+                            : Icons.warning_amber_outlined,
+                        color: subscribed ? Colors.green : Colors.red,
+                        size: 80,
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 24),
+                      SizedBox(height: 16),
+                      Text(
+                        subscribed
+                            ? "Subscription Active"
+                            : "No Active Subscription",
+                        style: TextStyle(
+                          fontSize: isTablet ? 24 : 20,
+                          fontWeight: FontWeight.bold,
+                          color: subscribed ? Colors.green : Colors.red,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 12),
+                      if (subscribed) ...[
+                        Text(
+                          "Type: $type",
+                          style: TextStyle(
+                            fontSize: isTablet ? 18 : 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        if (nextPaymentDate.isNotEmpty)
+                          Text(
+                            "Next Payment Date: $nextPaymentDate",
+                            style: TextStyle(
+                              fontSize: isTablet ? 18 : 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        SizedBox(height: 8),
+                        Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isTablet ? 16 : 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
 
-                  // --- Logout button ---
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF24455E),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: logout,
-                    child: Text(
-                      "Log Out",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                      // --- Styled note ---
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          "Note: To manage your subscription, please use our website.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isTablet ? 16 : 14,
+                            color: Colors.grey.shade800,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 24),
+
+                      // --- Logout button ---
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF24455E),
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: logout,
+                          child: Text(
+                            "Log Out",
+                            style: TextStyle(
+                                fontSize: isTablet ? 18 : 16,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
     );

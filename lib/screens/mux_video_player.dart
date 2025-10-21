@@ -15,6 +15,7 @@ class MuxVideoPlayer extends StatefulWidget {
 class _MuxVideoPlayerState extends State<MuxVideoPlayer> {
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -23,17 +24,23 @@ class _MuxVideoPlayerState extends State<MuxVideoPlayer> {
   }
 
   Future<void> _initializePlayer() async {
-    final url =
-        'https://stream.mux.com/${widget.playbackId}.m3u8?token=${widget.token}';
+    final url = 'https://stream.mux.com/${widget.playbackId}.m3u8?token=${widget.token}';
     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
 
-    await _videoPlayerController!.initialize();
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController!,
-      autoPlay: true,
-      looping: false,
-    );
-    setState(() {});
+    try {
+      await _videoPlayerController!.initialize();
+      _chewieController = ChewieController(
+        videoPlayerController: _videoPlayerController!,
+        autoPlay: true,
+        looping: false,
+        allowFullScreen: true,
+        aspectRatio: _videoPlayerController!.value.aspectRatio,
+      );
+      setState(() => isLoading = false);
+    } catch (e) {
+      print("Video initialization error: $e");
+      setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -45,10 +52,22 @@ class _MuxVideoPlayerState extends State<MuxVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (_videoPlayerController == null ||
-        !_videoPlayerController!.value.isInitialized) {
-      return Center(child: CircularProgressIndicator());
-    }
-    return Chewie(controller: _chewieController!);
+    return LayoutBuilder(builder: (context, constraints) {
+      if (isLoading || _chewieController == null) {
+        return Center(child: CircularProgressIndicator());
+      }
+
+      // Make video responsive to available width
+      final maxWidth = constraints.maxWidth;
+      final videoHeight = maxWidth / (_videoPlayerController!.value.aspectRatio);
+
+      return Center(
+        child: Container(
+          width: maxWidth,
+          height: videoHeight,
+          child: Chewie(controller: _chewieController!),
+        ),
+      );
+    });
   }
 }
