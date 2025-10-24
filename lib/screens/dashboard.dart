@@ -131,13 +131,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget buildInfoSection(double width) {
-    if (loadingInfo) return Center(child: CircularProgressIndicator());
+    if (loadingInfo) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: Theme.of(context).scaffoldBackgroundColor,
+            ),
+            SizedBox(height: 16),
+            Text(
+              "Loading vehicle information...",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: width > 600 ? 18 : 14,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     if (info == null || info!['sections'] == null || info!['sections'].isEmpty) {
       return Center(
-        child: Text(
-          "No information available.",
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.car_repair,
+              size: 64,
+              color: Colors.white,
+            ),
+            SizedBox(height: 16),
+            Text(
+              "No information available for this selection",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: width > 600 ? 18 : 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       );
     }
@@ -147,47 +181,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
     info!['sections'].forEach((sectionTitle, itemsMap) {
       final mapItems = Map<String, dynamic>.from(itemsMap);
       items.add(
-        Card(
-          elevation: 2,
+        Container(
           margin: EdgeInsets.symmetric(vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  sectionTitle.replaceAll('_', ' ').toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    fontSize: width > 600 ? 18 : 16, // larger font on tablets
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    sectionTitle.replaceAll('_', ' ').toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      fontSize: width > 600 ? 16 : 14,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
-                SizedBox(height: 6),
+                SizedBox(height: 12),
                 ...mapItems.entries.map(
                   (e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            e.key.replaceAll('_', ' '),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: width > 600 ? 16 : 14,
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                e.key.replaceAll('_', ' '),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: width > 600 ? 16 : 14,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              flex: 6,
+                              child: Text(
+                                e.value.toString(),
+                                style: TextStyle(
+                                  fontSize: width > 600 ? 16 : 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          flex: 5,
-                          child: Text(
-                            e.value.toString(),
-                            style: TextStyle(fontSize: width > 600 ? 16 : 14),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -201,18 +270,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (info!['product'] != null && info!['product'].toString().isNotEmpty) {
       final productUrl = fixUrl(info!['product'].toString());
       items.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 8),
           child: ElevatedButton.icon(
-            icon: Icon(Icons.link),
-            label: Text("View Product"),
+            icon: Icon(Icons.shopping_cart_rounded, size: 20),
+            label: Text(
+              "View Product Details",
+              style: TextStyle(fontSize: width > 600 ? 16 : 14),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(12),
               ),
+              elevation: 4,
+              shadowColor: Colors.black26,
             ),
             onPressed: () async {
               final uri = Uri.parse(productUrl);
@@ -220,7 +294,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               } catch (_) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Could not open product link.")),
+                  SnackBar(
+                    content: Text("Could not open product link."),
+                    backgroundColor: Colors.red,
+                  ),
                 );
               }
             },
@@ -231,17 +308,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (info!['image_url'] != null) {
       items.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
               imageUrl: info!['image_url'],
               fit: BoxFit.cover,
-              placeholder: (context, url) =>
-                  Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) =>
-                  Center(child: Icon(Icons.broken_image, size: 40)),
+              width: double.infinity,
+              height: width > 600 ? 300 : 200,
+              placeholder: (context, url) => Container(
+                height: width > 600 ? 300 : 200,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                  ),
+                ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                height: width > 600 ? 300 : 200,
+                color: Colors.grey.shade200,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.broken_image, size: 48, color: Colors.grey.shade400),
+                    SizedBox(height: 8),
+                    Text(
+                      "Image not available",
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -250,20 +358,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (info!['playback_id'] != null && info!['playback_token'] != null) {
       items.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 8),
           child: ElevatedButton.icon(
-            icon: Icon(Icons.play_arrow),
-            label: Text("Play Video"),
+            icon: Icon(Icons.play_circle_fill_rounded, size: 20),
+            label: Text(
+              "Watch Video Guide",
+              style: TextStyle(fontSize: width > 600 ? 16 : 14),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade600,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              shadowColor: Colors.black26,
+            ),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  insetPadding: EdgeInsets.all(20),
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: MuxVideoPlayer(
-                      playbackId: info!['playback_id'],
-                      token: info!['playback_token'],
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: MuxVideoPlayer(
+                        playbackId: info!['playback_id'],
+                        token: info!['playback_token'],
+                      ),
                     ),
                   ),
                 ),
@@ -286,36 +412,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isTablet = width > 600;
+    final isDesktop = width > 900;
 
     if (checkingSubscription) {
       return Scaffold(
-        appBar: AppBar(title: Text("Vehicle Info")),
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Colors.white),
+              SizedBox(height: 20),
+              Text(
+                "Checking subscription...",
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text("Vehicle Info", style: TextStyle(color: Colors.white70)),
+        title: Text(
+          "Vehicle Information",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: isTablet ? 22 : 18,
+          ),
+        ),
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.settings, color: Colors.white),
+            icon: Icon(Icons.settings_rounded, size: isTablet ? 28 : 24),
+            color: Colors.white,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => SettingsScreen()),
             ),
           ),
           IconButton(
-            icon: Icon(Icons.info, color: Colors.white),
+            icon: Icon(Icons.info_outline_rounded, size: isTablet ? 28 : 24),
+            color: Colors.white,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => SubscriptionInfoScreen()),
             ),
           ),
           IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
+            icon: Icon(Icons.logout_rounded, size: isTablet ? 28 : 24),
+            color: Colors.white,
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('access_token');
@@ -329,12 +481,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: Container(
-        padding: EdgeInsets.all(isTablet ? 24 : 16),
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
               Theme.of(context).scaffoldBackgroundColor,
-              Colors.blue.shade50
+              Color.alphaBlend(Colors.white.withOpacity(0.1), Theme.of(context).scaffoldBackgroundColor),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -342,85 +495,152 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: subscribed
             ? SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomDropdown<int>(
-                      hint: "Choose Make",
-                      value: selectedMake,
-                      items: makes
-                          .map((m) => DropdownMenuItem<int>(
-                                value: int.tryParse(m['id'].toString()),
-                                child: Text(m['name'].toString(),
-                                    style: TextStyle(
-                                        fontSize: isTablet ? 18 : 14)),
-                              ))
-                          .where((e) => e.value != null)
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          selectedMake = val;
-                          if (val != null) fetchModels(val);
-                        });
-                      },
-                      isLoading: loadingMakes,
-                    ),
-                    CustomDropdown<int>(
-                      hint: "Choose Model",
-                      value: selectedModel,
-                      items: models
-                          .map((m) => DropdownMenuItem<int>(
-                                value: int.tryParse(m['id'].toString()),
-                                child: Text(m['name'].toString(),
-                                    style: TextStyle(
-                                        fontSize: isTablet ? 18 : 14)),
-                              ))
-                          .where((e) => e.value != null)
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          selectedModel = val;
-                          if (val != null) fetchYears(val);
-                        });
-                      },
-                      isLoading: loadingModels,
-                    ),
-                    CustomDropdown<int>(
-                      hint: "Choose Year",
-                      value: selectedYear,
-                      items: years
-                          .map((y) => DropdownMenuItem<int>(
-                                value: int.tryParse(y['id'].toString()),
-                                child: Text(y['year'].toString(),
-                                    style: TextStyle(
-                                        fontSize: isTablet ? 18 : 14)),
-                              ))
-                          .where((e) => e.value != null)
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          selectedYear = val;
-                          if (val != null) fetchInfo(val);
-                        });
-                      },
-                      isLoading: loadingYears,
-                    ),
-                    SizedBox(height: isTablet ? 30 : 20),
-                    buildInfoSection(width),
-                  ],
+                padding: EdgeInsets.all(isTablet ? 24 : 16),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Selection Section
+                      Container(
+                        padding: EdgeInsets.all(isTablet ? 24 : 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            CustomDropdown<int>(
+                              hint: "Choose Vehicle Make",
+                              value: selectedMake,
+                              items: makes
+                                  .map((m) => DropdownMenuItem<int>(
+                                        value: int.tryParse(m['id'].toString()),
+                                        child: Text(
+                                          m['name'].toString(),
+                                          style: TextStyle(
+                                            fontSize: isTablet ? 18 : 14,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ))
+                                  .where((e) => e.value != null)
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedMake = val;
+                                  if (val != null) fetchModels(val);
+                                });
+                              },
+                              isLoading: loadingMakes,
+                            ),
+                            SizedBox(height: 16),
+                            CustomDropdown<int>(
+                              hint: "Choose Model",
+                              value: selectedModel,
+                              items: models
+                                  .map((m) => DropdownMenuItem<int>(
+                                        value: int.tryParse(m['id'].toString()),
+                                        child: Text(
+                                          m['name'].toString(),
+                                          style: TextStyle(
+                                            fontSize: isTablet ? 18 : 14,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ))
+                                  .where((e) => e.value != null)
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedModel = val;
+                                  if (val != null) fetchYears(val);
+                                });
+                              },
+                              isLoading: loadingModels,
+                            ),
+                            SizedBox(height: 16),
+                            CustomDropdown<int>(
+                              hint: "Choose Year",
+                              value: selectedYear,
+                              items: years
+                                  .map((y) => DropdownMenuItem<int>(
+                                        value: int.tryParse(y['id'].toString()),
+                                        child: Text(
+                                          y['year'].toString(),
+                                          style: TextStyle(
+                                            fontSize: isTablet ? 18 : 14,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ))
+                                  .where((e) => e.value != null)
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedYear = val;
+                                  if (val != null) fetchInfo(val);
+                                });
+                              },
+                              isLoading: loadingYears,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 30 : 20),
+                      
+                      // Information Section
+                      if (selectedYear != null)
+                        Text(
+                          "Vehicle Details",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isTablet ? 24 : 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      SizedBox(height: isTablet ? 20 : 16),
+                      buildInfoSection(width),
+                    ],
+                  ),
                 ),
               )
             : Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: isTablet ? 48 : 24),
-                  child: Text(
-                    "No active subscription.\nPlease use our website to manage your account.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: isTablet ? 20 : 16,
-                      color: Colors.red.shade700,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.credit_card_off_rounded,
+                        size: 80,
+                        color: Colors.white54,
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        "No Active Subscription",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: isTablet ? 24 : 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "Please visit our website to manage your subscription and access vehicle information.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: isTablet ? 18 : 16,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

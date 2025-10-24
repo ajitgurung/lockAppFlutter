@@ -25,7 +25,7 @@ class CustomDropdown<T> extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+        borderRadius: BorderRadius.circular(isTablet ? 16 : 12), // Curved corners
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
@@ -60,6 +60,7 @@ class CustomDropdown<T> extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Icon(Icons.keyboard_arrow_down),
+        borderRadius: BorderRadius.circular(isTablet ? 16 : 12), // Curved corners for dropdown menu
       ),
     );
   }

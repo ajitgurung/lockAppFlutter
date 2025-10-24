@@ -52,13 +52,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
       } else {
         setState(() => loading = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Failed to fetch profile")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to fetch profile"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       setState(() => loading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error fetching profile")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error fetching profile"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -70,8 +78,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         currentPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text("Please enter your current password to change it.")),
+          content: Text("Please enter your current password to change it."),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -105,7 +114,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Profile updated successfully")),
+          SnackBar(
+            content: Text("🎉 Profile updated successfully"),
+            backgroundColor: Colors.green,
+          ),
         );
         currentPasswordController.clear();
         newPasswordController.clear();
@@ -116,13 +128,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (data['errors'] != null) {
           errorMsg = data['errors'].values.expand((e) => e).join("\n");
         }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(errorMsg)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       setState(() => updating = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error updating profile")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("⚠️ Error updating profile"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -155,60 +175,157 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (data['errors'] != null) {
           errorMsg = data['errors'].values.expand((e) => e).join("\n");
         }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(errorMsg)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error deleting account")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("⚠️ Error deleting account"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   void _showDeleteDialog() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text("Confirm Delete"),
-        content: TextField(
-          controller: deletePasswordController,
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: "Enter Password",
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(),
+      builder: (_) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 28,
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    "Delete Account",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Text(
+                "This action cannot be undone. All your data will be permanently deleted. Please enter your password to confirm.",
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+              SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                  ),
+                ),
+                child: TextField(
+                  controller: deletePasswordController,
+                  obscureText: true,
+                  style: TextStyle(fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: "Enter your password",
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 16,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    child: Text("Cancel"),
+                  ),
+                  SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (deletePasswordController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Please enter your password"),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.pop(context);
+                      deleteAccount(deletePasswordController.text);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    child: Text("Delete Account"),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              deleteAccount(deletePasswordController.text);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            child: Text("Delete", style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
+  Widget _buildInputField(TextEditingController controller, String label, {bool obscureText = false}) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+        ),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.white,
+        ),
+        decoration: InputDecoration(
+          hintText: label,
+          hintStyle: TextStyle(color: Colors.white70),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        ),
       ),
     );
   }
@@ -217,84 +334,266 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
+    final isDesktop = screenWidth > 900;
 
     return Scaffold(
-      appBar: AppBar(title: Text("Settings")),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          "Account Settings",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
       body: loading
-          ? Center(child: CircularProgressIndicator())
-          : Center(
-              child: Container(
-                width: isTablet ? 600 : double.infinity,
-                padding: EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: nameController,
-                        decoration: _inputDecoration("Name"),
-                      ),
-                      SizedBox(height: 16),
-                      TextField(
-                        controller: emailController,
-                        decoration: _inputDecoration("Email"),
-                      ),
-                      SizedBox(height: 16),
-                      TextField(
-                        controller: currentPasswordController,
-                        obscureText: true,
-                        decoration: _inputDecoration("Current Password"),
-                      ),
-                      SizedBox(height: 16),
-                      TextField(
-                        controller: newPasswordController,
-                        obscureText: true,
-                        decoration:
-                            _inputDecoration("New Password (optional)"),
-                      ),
-                      SizedBox(height: 24),
-                      updating
-                          ? CircularProgressIndicator()
-                          : SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: updateProfile,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF24455E),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 16),
-                                ),
-                                child: Text(
-                                  "Update Profile",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16),
-                                ),
-                              ),
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Loading profile...",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).scaffoldBackgroundColor,
+                    Color.alphaBlend(Colors.white.withOpacity(0.1), Theme.of(context).scaffoldBackgroundColor),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  width: isDesktop ? 600 : (isTablet ? 500 : double.infinity),
+                  padding: EdgeInsets.all(isTablet ? 32 : 24),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Profile Icon
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 2,
                             ),
-                      SizedBox(height: 24),
-                      Divider(),
-                      SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _showDeleteDialog,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: Text(
-                            "Delete Account",
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 16),
+                          child: Icon(
+                            Icons.person_rounded,
+                            size: 40,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 24),
+                        
+                        // Title
+                        Text(
+                          "Manage Your Account",
+                          style: TextStyle(
+                            fontSize: isTablet ? 28 : 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Update your profile information and security settings",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: isTablet ? 16 : 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 32),
+
+                        // Profile Form Container
+                        Container(
+                          padding: EdgeInsets.all(isTablet ? 32 : 24),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.1),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              _buildInputField(nameController, "Full Name"),
+                              SizedBox(height: 16),
+                              _buildInputField(emailController, "Email Address"),
+                              SizedBox(height: 24),
+                              
+                              Text(
+                                "Change Password",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              _buildInputField(currentPasswordController, "Current Password", obscureText: true),
+                              SizedBox(height: 16),
+                              _buildInputField(newPasswordController, "New Password (optional)", obscureText: true),
+                              SizedBox(height: 32),
+
+                              // Update Button
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.4),
+                                      blurRadius: 20,
+                                      offset: Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: updating ? null : updateProfile,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(vertical: 18),
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Theme.of(context).scaffoldBackgroundColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: updating
+                                      ? SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 3,
+                                            color: Theme.of(context).scaffoldBackgroundColor,
+                                          ),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.save_rounded),
+                                            SizedBox(width: 12),
+                                            Text(
+                                              "Update Profile",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 32),
+
+                        // Delete Account Section
+                        Container(
+                          padding: EdgeInsets.all(isTablet ? 24 : 20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: Colors.red,
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    "Danger Zone",
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "Once you delete your account, there is no going back. This action cannot be undone.",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Container(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _showDeleteDialog,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.delete_rounded),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        "Delete Account",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

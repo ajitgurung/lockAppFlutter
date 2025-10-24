@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'register_page.dart';
 import 'screens/dashboard.dart';
+import 'otp_verification_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -20,43 +21,113 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
+        SnackBar(
+          content: Text("Please fill in all fields"),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
 
     setState(() => loading = true);
 
-    final response = await http.post(
-      Uri.parse("https://bikebible.ca/api/login"),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode({
-        "email": emailController.text.trim(),
-        "password": passwordController.text.trim(),
-      }),
-    );
-
-    setState(() => loading = false);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final prefs = await SharedPreferences.getInstance();
-
-      await prefs.setString("token", data["access_token"]);
-      if (data.containsKey("subscribed")) {
-        await prefs.setBool("subscribed", data["subscribed"]);
-      }
-      if (data.containsKey("user")) {
-        await prefs.setString("user", json.encode(data["user"]));
-      }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => DashboardScreen()),
+    try {
+      final response = await http.post(
+        Uri.parse("https://bikebible.ca/api/login"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "email": emailController.text.trim(),
+          "password": passwordController.text.trim(),
+        }),
       );
-    } else {
+
+      setState(() => loading = false);
+
+      // Debug logging
+      print("Login Status Code: ${response.statusCode}");
+      print("Login Response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final prefs = await SharedPreferences.getInstance();
+
+        await prefs.setString("token", data["access_token"]);
+        if (data.containsKey("subscribed")) {
+          await prefs.setBool("subscribed", data["subscribed"]);
+        }
+        if (data.containsKey("user")) {
+          await prefs.setString("user", json.encode(data["user"]));
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => DashboardScreen()),
+        );
+      } else if (response.statusCode == 403) {
+        // Handle unverified email (needs OTP verification)
+        final data = json.decode(response.body);
+        print("Unverified email response: $data");
+        
+        if (data['needs_verification'] == true && data['user_id'] != null) {
+          // Redirect to OTP verification page
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? "Please verify your email"),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationPage(
+                userId: data['user_id'].toString(),
+                email: emailController.text.trim(),
+              ),
+            ),
+          );
+        } else {
+          // Fallback error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? "Email verification required"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        // Handle other errors
+        final data = json.decode(response.body);
+        String errorMsg = "Invalid email or password";
+        
+        if (data['message'] != null) {
+          errorMsg = data['message'];
+        } else if (data['errors'] != null) {
+          if (data['errors'] is Map) {
+            errorMsg = (data['errors'] as Map)
+                .values
+                .expand((e) => e is List ? e : [e])
+                .join("\n");
+          } else if (data['errors'] is String) {
+            errorMsg = data['errors'];
+          }
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => loading = false);
+      print("Login error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid email or password")),
+        SnackBar(
+          content: Text("⚠️ Network error. Please try again."),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -65,146 +136,302 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
-    final titleFontSize = isTablet ? 40.0 : 32.0;
-    final subtitleFontSize = isTablet ? 20.0 : 16.0;
-    final fieldPadding = isTablet ? 22.0 : 18.0;
-    final buttonPadding = isTablet ? 22.0 : 18.0;
-    final horizontalPadding = isTablet ? 80.0 : 24.0;
+    final isDesktop = size.width > 900;
+    
+    // Get theme colors
+    final primaryColor = Theme.of(context).scaffoldBackgroundColor;
+    final primaryColorLight = Color.alphaBlend(Colors.white.withOpacity(0.1), primaryColor);
+    final primaryColorDark = Color.alphaBlend(Colors.black.withOpacity(0.2), primaryColor);
+    
+    // Responsive sizing
+    final titleFontSize = isDesktop ? 48.0 : isTablet ? 40.0 : 32.0;
+    final subtitleFontSize = isDesktop ? 22.0 : isTablet ? 20.0 : 16.0;
+    final buttonFontSize = isDesktop ? 20.0 : isTablet ? 18.0 : 16.0;
+    final fieldPadding = isDesktop ? 24.0 : isTablet ? 22.0 : 18.0;
+    final buttonPadding = isDesktop ? 22.0 : isTablet ? 20.0 : 18.0;
+    final horizontalPadding = isDesktop ? 120.0 : isTablet ? 80.0 : 24.0;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).scaffoldBackgroundColor,
-              Colors.blue.shade400,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                primaryColorDark,
+                primaryColor,
+                primaryColorLight,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0.0, 0.6, 1.0],
+            ),
           ),
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+          child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 60),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Welcome Back",
-                    style: TextStyle(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Log in to your account",
-                    style: TextStyle(fontSize: subtitleFontSize, color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-
-                  // --- Email Field ---
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        hintText: "Email",
-                        border: InputBorder.none,
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: fieldPadding, horizontal: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // --- Password Field ---
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: "Password",
-                        border: InputBorder.none,
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: fieldPadding, horizontal: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // --- Login Button ---
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: loading ? null : login,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: buttonPadding),
-                        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              physics: BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: isDesktop ? 80 : isTablet ? 60 : 40,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Header Icon/Logo
+                      Container(
+                        width: isDesktop ? 120 : isTablet ? 100 : 80,
+                        height: isDesktop ? 120 : isTablet ? 100 : 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.login_rounded,
+                          size: isDesktop ? 50 : isTablet ? 45 : 40,
+                          color: Colors.white,
                         ),
                       ),
-                      child: loading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: isTablet ? 20 : 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                      SizedBox(height: isDesktop ? 40 : isTablet ? 32 : 24),
+
+                      // Title
+                      Text(
+                        "Welcome Back",
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                          shadows: const [
+                            Shadow(
+                              blurRadius: 15,
+                              color: Colors.black45,
+                              offset: Offset(3, 3),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: isDesktop ? 16 : isTablet ? 12 : 8),
+                      
+                      // Subtitle
+                      Text(
+                        "Log in to access your Bike Bible account",
+                        style: TextStyle(
+                          fontSize: subtitleFontSize,
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.w300,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: isDesktop ? 50 : isTablet ? 40 : 32),
+
+                      // Login Form Container
+                      Container(
+                        padding: EdgeInsets.all(isDesktop ? 40 : isTablet ? 32 : 24),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            // Email Field
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: TextField(
+                                controller: emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: "Email Address",
+                                  hintStyle: TextStyle(color: Colors.white70),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: fieldPadding,
+                                    horizontal: 16,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.email_rounded,
+                                    color: Colors.white70,
+                                  ),
+                                ),
                               ),
                             ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                            SizedBox(height: 20),
 
-                  // --- Register Link ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Don't have an account?",
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => RegisterPage()),
-                          );
-                        },
-                        child: const Text(
-                          "Register",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                            // Password Field
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: TextField(
+                                controller: passwordController,
+                                obscureText: true,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: "Password",
+                                  hintStyle: TextStyle(color: Colors.white70),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: fieldPadding,
+                                    horizontal: 16,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.lock_rounded,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 30),
+
+                            // Login Button
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColorDark.withOpacity(0.4),
+                                    blurRadius: 20,
+                                    offset: Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                onPressed: loading ? null : login,
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: buttonPadding),
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: loading
+                                    ? SizedBox(
+                                        height: isDesktop ? 28 : isTablet ? 26 : 24,
+                                        width: isDesktop ? 28 : isTablet ? 26 : 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3,
+                                          color: primaryColor,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.login_rounded, size: buttonFontSize + 4),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            "Login to Account",
+                                            style: TextStyle(
+                                              fontSize: buttonFontSize,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                            SizedBox(height: 20),
+
+                            // Register Link
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Don't have an account?",
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: isDesktop ? 16 : isTablet ? 15 : 14,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => RegisterPage()),
+                                    );
+                                  },
+                                  child: Text(
+                                    "Sign Up",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: isDesktop ? 16 : isTablet ? 15 : 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      )
+                      ),
+
+                      SizedBox(height: isDesktop ? 40 : isTablet ? 32 : 24),
+
+                      // Additional Help Text
+                      Text(
+                        "Having trouble logging in? Contact support",
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: isDesktop ? 14 : 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ],
-                  )
-                ],
+                  ),
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }
