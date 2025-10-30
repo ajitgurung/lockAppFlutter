@@ -8,7 +8,7 @@ class ApiService {
   // Get auth token from SharedPreferences
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('access_token');
+    return prefs.getString('token');
   }
 
   // Helper GET request with token
@@ -99,4 +99,31 @@ static Future<Map<String, dynamic>> getYears(int modelId) async {
     }
     throw Exception("Failed to load subscription status: ${res.statusCode}");
   }
+
+  // Add this to your ApiService class
+static Future<Map<String, dynamic>> submitSuggestion({
+  required int yearId,
+  required String message,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+  
+  final response = await http.post(
+    Uri.parse('$baseUrl/suggestion/store'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: json.encode({
+      'year_id': yearId,
+      'message': message,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to submit suggestion');
+  }
+}
 }

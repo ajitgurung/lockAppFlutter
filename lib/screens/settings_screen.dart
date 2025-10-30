@@ -538,14 +538,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 children: [
                                   Icon(
                                     Icons.warning_amber_rounded,
-                                    color: Colors.red,
+                                    color: Colors.yellow,
                                     size: 24,
                                   ),
                                   SizedBox(width: 12),
                                   Text(
                                     "Danger Zone",
                                     style: TextStyle(
-                                      color: Colors.red,
+                                      color: Colors.yellow,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'register_page.dart';
 import 'screens/dashboard.dart';
 import 'otp_verification_page.dart';
+import 'forgot_password_page.dart'; // Create this new file
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -318,7 +319,34 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 30),
+                            SizedBox(height: 16),
+
+                            // Forgot Password Button
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ForgotPasswordPage(),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                ),
+                                child: Text(
+                                  "Forgot Password?",
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: isDesktop ? 16 : isTablet ? 15 : 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 14),
 
                             // Login Button
                             Container(
