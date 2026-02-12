@@ -19,18 +19,44 @@ class HomePage extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
     final isDesktop = size.width > 900;
-    
+
     // Get theme colors
     final primaryColor = Theme.of(context).scaffoldBackgroundColor;
-    final primaryColorLight = Color.alphaBlend(Colors.white.withOpacity(0.1), primaryColor);
-    final primaryColorDark = Color.alphaBlend(Colors.black.withOpacity(0.2), primaryColor);
-    
+    final primaryColorLight = Color.alphaBlend(
+      Colors.white.withOpacity(0.1),
+      primaryColor,
+    );
+    final primaryColorDark = Color.alphaBlend(
+      Colors.black.withOpacity(0.2),
+      primaryColor,
+    );
+
     // Responsive sizing
-    final titleFontSize = isDesktop ? 72.0 : isTablet ? 64.0 : 48.0;
-    final subtitleFontSize = isDesktop ? 24.0 : isTablet ? 22.0 : 18.0;
-    final buttonFontSize = isDesktop ? 22.0 : isTablet ? 20.0 : 16.0;
-    final paddingHorizontal = isDesktop ? 120.0 : isTablet ? 80.0 : 32.0;
-    final buttonVerticalPadding = isDesktop ? 24.0 : isTablet ? 20.0 : 16.0;
+    final titleFontSize = isDesktop
+        ? 72.0
+        : isTablet
+        ? 64.0
+        : 48.0;
+    final subtitleFontSize = isDesktop
+        ? 24.0
+        : isTablet
+        ? 22.0
+        : 18.0;
+    final buttonFontSize = isDesktop
+        ? 22.0
+        : isTablet
+        ? 20.0
+        : 16.0;
+    final paddingHorizontal = isDesktop
+        ? 120.0
+        : isTablet
+        ? 80.0
+        : 32.0;
+    final buttonVerticalPadding = isDesktop
+        ? 24.0
+        : isTablet
+        ? 20.0
+        : 16.0;
 
     return Scaffold(
       body: Container(
@@ -38,11 +64,7 @@ class HomePage extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              primaryColorDark,
-              primaryColor,
-              primaryColorLight,
-            ],
+            colors: [primaryColorDark, primaryColor, primaryColorLight],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             stops: [0.0, 0.6, 1.0],
@@ -76,7 +98,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: isDesktop ? 800 : 700),
@@ -85,9 +107,18 @@ class HomePage extends StatelessWidget {
                       const Spacer(flex: 2),
 
                       // App Logo
+                      // App Logo
                       Container(
-                        width: isDesktop ? 140 : isTablet ? 120 : 100,
-                        height: isDesktop ? 140 : isTablet ? 120 : 100,
+                        width: isDesktop
+                            ? 140
+                            : isTablet
+                            ? 120
+                            : 100,
+                        height: isDesktop
+                            ? 140
+                            : isTablet
+                            ? 120
+                            : 100,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
                           shape: BoxShape.circle,
@@ -105,20 +136,36 @@ class HomePage extends StatelessWidget {
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/logo/app_icon.png', // Your custom logo path
+                            'assets/logo/app_icon.png',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              // Fallback icon if logo not found
-                              return Icon(
-                                Icons.two_wheeler,
-                                size: isDesktop ? 50 : isTablet ? 45 : 40,
-                                color: Colors.white,
+                              // Try different paths
+                              return Image.asset(
+                                'assets/images/app_icon.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.two_wheeler,
+                                    size: isDesktop
+                                        ? 50
+                                        : isTablet
+                                        ? 45
+                                        : 40,
+                                    color: Colors.white,
+                                  );
+                                },
                               );
                             },
                           ),
                         ),
                       ),
-                      SizedBox(height: isDesktop ? 40 : isTablet ? 32 : 24),
+                      SizedBox(
+                        height: isDesktop
+                            ? 40
+                            : isTablet
+                            ? 32
+                            : 24,
+                      ),
 
                       // --- App Title ---
                       Text(
@@ -138,12 +185,22 @@ class HomePage extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: isDesktop ? 24 : isTablet ? 20 : 16),
-                      
+                      SizedBox(
+                        height: isDesktop
+                            ? 24
+                            : isTablet
+                            ? 20
+                            : 16,
+                      ),
+
                       // Subtitle with better styling
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: isDesktop ? 60 : isTablet ? 40 : 24,
+                          horizontal: isDesktop
+                              ? 60
+                              : isTablet
+                              ? 40
+                              : 24,
                         ),
                         child: Text(
                           "Secure your vehicle information with cutting-edge protection and seamless access",
@@ -166,7 +223,9 @@ class HomePage extends StatelessWidget {
 
                       // --- Login & Register Buttons ---
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: paddingHorizontal),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: paddingHorizontal,
+                        ),
                         child: Column(
                           children: [
                             // Login Button
@@ -186,11 +245,15 @@ class HomePage extends StatelessWidget {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                                    MaterialPageRoute(
+                                      builder: (_) => const LoginPage(),
+                                    ),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: buttonVerticalPadding),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: buttonVerticalPadding,
+                                  ),
                                   backgroundColor: Colors.white,
                                   foregroundColor: primaryColor,
                                   shape: RoundedRectangleBorder(
@@ -214,8 +277,14 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            SizedBox(height: isDesktop ? 20 : isTablet ? 16 : 12),
-                            
+                            SizedBox(
+                              height: isDesktop
+                                  ? 20
+                                  : isTablet
+                                  ? 16
+                                  : 12,
+                            ),
+
                             // Register Button
                             Container(
                               width: double.infinity,
@@ -237,11 +306,15 @@ class HomePage extends StatelessWidget {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => RegisterPage()),
+                                    MaterialPageRoute(
+                                      builder: (_) => RegisterPage(),
+                                    ),
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: buttonVerticalPadding),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: buttonVerticalPadding,
+                                  ),
                                   side: BorderSide.none,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
@@ -251,7 +324,11 @@ class HomePage extends StatelessWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.person_add, size: buttonFontSize + 4, color: Colors.white),
+                                    Icon(
+                                      Icons.person_add,
+                                      size: buttonFontSize + 4,
+                                      color: Colors.white,
+                                    ),
                                     SizedBox(width: 12),
                                     Text(
                                       "Create New Account",
@@ -274,7 +351,13 @@ class HomePage extends StatelessWidget {
                       // --- Footer Links ---
                       Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(isDesktop ? 32 : isTablet ? 24 : 16),
+                        padding: EdgeInsets.all(
+                          isDesktop
+                              ? 32
+                              : isTablet
+                              ? 24
+                              : 16,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.1),
                           border: Border(
@@ -288,7 +371,9 @@ class HomePage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
-                              onPressed: () => _openLink("https://bikebible.ca/privacy-policy"),
+                              onPressed: () => _openLink(
+                                "https://bikebible.ca/privacy-policy",
+                              ),
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.white70,
                               ),
@@ -310,7 +395,9 @@ class HomePage extends StatelessWidget {
                               ),
                             ),
                             TextButton(
-                              onPressed: () => _openLink("https://bikebible.ca/terms-and-conditions"),
+                              onPressed: () => _openLink(
+                                "https://bikebible.ca/terms-and-conditions",
+                              ),
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.white70,
                               ),
@@ -344,7 +431,11 @@ class HomePage extends StatelessWidget {
         children: [
           _buildFeatureItem(Icons.security, "Secure Storage", primaryColor),
           _buildFeatureItem(Icons.speed, "Fast Access", primaryColor),
-          _buildFeatureItem(Icons.phone_iphone, "Mobile Friendly", primaryColor),
+          _buildFeatureItem(
+            Icons.phone_iphone,
+            "Mobile Friendly",
+            primaryColor,
+          ),
         ],
       ),
     );
@@ -358,9 +449,7 @@ class HomePage extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
           ),
           child: Icon(icon, color: Colors.white, size: 28),
         ),

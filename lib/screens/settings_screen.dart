@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../login_page.dart';
 
 class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
@@ -503,7 +505,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       : Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.save_rounded),
                                             SizedBox(width: 12),
                                             Text(
                                               "Update Profile",
@@ -561,7 +562,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                               SizedBox(height: 16),
-                              Container(
+                              SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
                                   onPressed: _showDeleteDialog,
