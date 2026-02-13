@@ -7,7 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  static const Color appPrimaryColor = Color(0xFF4783B2); // 💡 Your main color
+  static const Color appPrimaryColor = Color(0xFF4783B2);
+
+  const MyApp({super.key}); // 💡 Your main color
 
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();

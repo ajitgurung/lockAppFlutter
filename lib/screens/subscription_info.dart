@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../login_page.dart';
 
 class SubscriptionInfoScreen extends StatefulWidget {
+  const SubscriptionInfoScreen({super.key});
+
   @override
   _SubscriptionInfoScreenState createState() => _SubscriptionInfoScreenState();
 }

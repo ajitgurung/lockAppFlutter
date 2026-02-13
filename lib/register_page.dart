@@ -5,6 +5,8 @@ import 'login_page.dart';
 import 'otp_verification_page.dart';
 
 class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
   @override
   _RegisterPageState createState() => _RegisterPageState();
 }
