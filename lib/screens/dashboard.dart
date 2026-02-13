@@ -10,6 +10,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -386,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fit: BoxFit.cover,
               width: double.infinity,
               height: width > 600 ? 300 : 200,
-              placeholder: (context, url) => Container(
+              placeholder: (context, url) => SizedBox(
                 height: width > 600 ? 300 : 200,
                 child: Center(
                   child: CircularProgressIndicator(

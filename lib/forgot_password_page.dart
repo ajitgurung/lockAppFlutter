@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({Key? key}) : super(key: key);
+  const ForgotPasswordPage({super.key});
 
   @override
   _ForgotPasswordPageState createState() => _ForgotPasswordPageState();

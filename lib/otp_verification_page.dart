@@ -10,10 +10,10 @@ class OtpVerificationPage extends StatefulWidget {
   final String email;
 
   const OtpVerificationPage({
-    Key? key,
+    super.key,
     required this.userId,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   _OtpVerificationPageState createState() => _OtpVerificationPageState();
@@ -320,7 +320,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: List.generate(6, (index) {
-                                return Container(
+                                return SizedBox(
                                   width: isDesktop ? 65 : isTablet ? 60 : 50,
                                   height: isDesktop ? 75 : isTablet ? 70 : 60,
                                   child: TextField(
